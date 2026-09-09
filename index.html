@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a1929">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Set & Drift">
+<title>Set & Drift</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Set &amp; Drift</h1>
+  <button id="settingsBtn" class="icon-btn" aria-label="Settings">&#9881;</button>
+</header>
+
+<main>
+  <section id="status" class="status">
+    <p id="statusText">Ready. Press START to mark Fix&nbsp;1.</p>
+  </section>
+
+  <section class="fixes">
+    <div class="fix-card" id="fix1Card">
+      <h2>Fix 1</h2>
+      <p class="coord" id="fix1Coord">&mdash;</p>
+      <p class="time" id="fix1Time">&mdash;</p>
+    </div>
+    <div class="fix-card" id="fix2Card">
+      <h2>Fix 2</h2>
+      <p class="coord" id="fix2Coord">&mdash;</p>
+      <p class="time" id="fix2Time">&mdash;</p>
+    </div>
+  </section>
+
+  <section class="controls">
+    <button id="startBtn" class="big-btn start">START</button>
+    <button id="stopBtn" class="big-btn stop" disabled>STOP</button>
+  </section>
+
+  <section class="results" id="results" hidden>
+    <h2>Result</h2>
+    <div class="result-grid">
+      <div class="result-box">
+        <span class="label">Set (True)</span>
+        <span class="value" id="setTrue">&mdash;</span>
+      </div>
+      <div class="result-box">
+        <span class="label">Set (Magnetic)</span>
+        <span class="value" id="setMag">&mdash;</span>
+      </div>
+      <div class="result-box">
+        <span class="label">Drift (kn)</span>
+        <span class="value" id="driftKn">&mdash;</span>
+      </div>
+      <div class="result-box">
+        <span class="label">Drift (mph)</span>
+        <span class="value" id="driftMph">&mdash;</span>
+      </div>
+    </div>
+    <p class="meta" id="resultMeta"></p>
+  </section>
+
+  <button id="resetBtn" class="text-btn" hidden>New Run</button>
+</main>
+
+<div id="settingsPanel" class="overlay" hidden>
+  <div class="sheet">
+    <h2>Settings</h2>
+    <label class="field">
+      <span>Magnetic Variation</span>
+      <div class="row">
+        <input type="number" id="varDeg" min="0" max="180" step="0.1" inputmode="decimal">
+        <span>&deg;</span>
+        <select id="varDir">
+          <option value="E">E</option>
+          <option value="W">W</option>
+        </select>
+      </div>
+    </label>
+    <p class="hint">Magnetic = True &minus; Easterly variation (or + Westerly). Enter the value from your chart or GPS.</p>
+    <label class="field">
+      <span>Min. interval for valid drift (seconds)</span>
+      <input type="number" id="minInterval" min="1" step="1" inputmode="numeric">
+    </label>
+    <div class="sheet-actions">
+      <button id="settingsSave" class="big-btn start">Save</button>
+      <button id="settingsClose" class="text-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

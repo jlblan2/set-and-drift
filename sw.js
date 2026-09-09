@@ -1,8 +1,9 @@
-const CACHE = 'setdrift-v2';
+const CACHE = 'setdrift-v3';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './wmm.js',
   './app.js',
   './manifest.json',
   './icons/icon-192.png',

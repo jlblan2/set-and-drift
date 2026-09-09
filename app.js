@@ -23,12 +23,17 @@ const els = {
   settingsPanel: document.getElementById('settingsPanel'),
   settingsSave: document.getElementById('settingsSave'),
   settingsClose: document.getElementById('settingsClose'),
+  varModeSeg: document.getElementById('varModeSeg'),
+  varAutoHint: document.getElementById('varAutoHint'),
+  varManualField: document.getElementById('varManualField'),
+  varPreview: document.getElementById('varPreview'),
   varDeg: document.getElementById('varDeg'),
   varDir: document.getElementById('varDir'),
   minInterval: document.getElementById('minInterval'),
 };
 
-const DEFAULT_SETTINGS = { varDeg: 0, varDir: 'W', minInterval: 5 };
+const DEFAULT_SETTINGS = { varMode: 'auto', varDeg: 0, varDir: 'W', minInterval: 5 };
+let pendingVarMode = DEFAULT_SETTINGS.varMode;
 
 function loadSettings() {
   try {
@@ -122,9 +127,32 @@ function getFix() {
   });
 }
 
+// Signed magnetic variation in degrees, East positive / West negative,
+// matching WMM declination convention (Magnetic = True - Variation).
+function getSignedVariation(fix) {
+  if (settings.varMode === 'manual') {
+    return { value: settings.varDir === 'E' ? settings.varDeg : -settings.varDeg, source: 'manual' };
+  }
+  try {
+    const altKm = 0; // surface/marine use; altitude has negligible effect on declination near sea level
+    const decYear = WMM.toDecimalYear(fix.time);
+    const value = WMM.declination(fix.lat, fix.lon, altKm, decYear);
+    return { value, source: 'auto' };
+  } catch (e) {
+    return { value: settings.varDir === 'E' ? settings.varDeg : -settings.varDeg, source: 'manual-fallback' };
+  }
+}
+
+function formatVariation(variation) {
+  const dir = variation.value >= 0 ? 'E' : 'W';
+  const label = variation.source === 'manual' ? 'manual' : variation.source === 'auto' ? 'WMM2025' : 'manual fallback';
+  return `${Math.abs(variation.value).toFixed(1)}° ${dir} (${label})`;
+}
+
 function computeResult() {
   const trueSet = bearingTrue(fix1.lat, fix1.lon, fix2.lat, fix2.lon);
-  const signedVar = settings.varDir === 'E' ? settings.varDeg : -settings.varDeg;
+  const variation = getSignedVariation(fix1);
+  const signedVar = variation.value;
   const magSet = norm360(trueSet - signedVar);
 
   const distM = distanceMeters(fix1.lat, fix1.lon, fix2.lat, fix2.lon);
@@ -140,7 +168,7 @@ function computeResult() {
     els.driftMph.textContent = 'n/a';
     els.resultMeta.textContent =
       `Interval too short (${elapsedSec.toFixed(1)}s < ${settings.minInterval}s) for a reliable drift speed. ` +
-      `Distance: ${(distM / M_PER_NM).toFixed(3)} nm.`;
+      `Distance: ${(distM / M_PER_NM).toFixed(3)} nm. Variation used: ${formatVariation(variation)}.`;
   } else {
     const distNm = distM / M_PER_NM;
     const distMiles = distM / M_PER_MILE;
@@ -150,7 +178,7 @@ function computeResult() {
     els.driftMph.textContent = driftMph.toFixed(2);
     els.resultMeta.textContent =
       `Distance ${distNm.toFixed(3)} nm (${distMiles.toFixed(3)} mi) over ${elapsedSec.toFixed(1)} s. ` +
-      `Variation used: ${settings.varDeg.toFixed(1)}° ${settings.varDir}.`;
+      `Variation used: ${formatVariation(variation)}.`;
   }
 
   els.results.hidden = false;
@@ -204,10 +232,31 @@ els.stopBtn.addEventListener('click', async () => {
 
 els.resetBtn.addEventListener('click', resetRun);
 
+function applyVarModeUI(mode) {
+  pendingVarMode = mode;
+  for (const btn of els.varModeSeg.querySelectorAll('.seg-btn')) {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  }
+  els.varAutoHint.hidden = mode !== 'auto';
+  els.varManualField.hidden = mode !== 'manual';
+  if (mode === 'auto') {
+    if (fix1) {
+      const v = getSignedVariation(fix1);
+      els.varPreview.textContent = `Current: ${formatVariation(v)}`;
+      els.varPreview.hidden = false;
+    } else {
+      els.varPreview.hidden = true;
+    }
+  } else {
+    els.varPreview.hidden = true;
+  }
+}
+
 function openSettings() {
   els.varDeg.value = settings.varDeg;
   els.varDir.value = settings.varDir;
   els.minInterval.value = settings.minInterval;
+  applyVarModeUI(settings.varMode);
   els.settingsPanel.hidden = false;
 }
 
@@ -218,11 +267,16 @@ els.settingsClose.addEventListener('click', closeSettings);
 els.settingsPanel.addEventListener('click', (e) => {
   if (e.target === els.settingsPanel) closeSettings();
 });
+els.varModeSeg.addEventListener('click', (e) => {
+  const btn = e.target.closest('.seg-btn');
+  if (btn) applyVarModeUI(btn.dataset.mode);
+});
 
 els.settingsSave.addEventListener('click', () => {
   const varDeg = Math.abs(parseFloat(els.varDeg.value));
   const minInterval = Math.abs(parseFloat(els.minInterval.value));
   settings = {
+    varMode: pendingVarMode === 'manual' ? 'manual' : 'auto',
     varDeg: Number.isFinite(varDeg) ? varDeg : 0,
     varDir: els.varDir.value === 'E' ? 'E' : 'W',
     minInterval: Number.isFinite(minInterval) && minInterval > 0 ? minInterval : DEFAULT_SETTINGS.minInterval,

@@ -251,6 +251,38 @@ input, select {
   margin: -6px 0 16px;
 }
 
+.seg {
+  display: flex;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.seg-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 9px 0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.seg-btn.active {
+  background: var(--accent-2);
+  color: #06201d;
+}
+
+.var-preview {
+  font-size: 0.82rem;
+  color: var(--accent-2);
+  margin: -6px 0 16px;
+  font-variant-numeric: tabular-nums;
+}
+
 .sheet-actions {
   display: grid;
   grid-template-columns: 1fr;

@@ -12,6 +12,8 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="style.css">
 </head>
+
+
 <body>
 <header>
   <h1>Set &amp; Drift</h1>
@@ -72,6 +74,15 @@
     <h2>Settings</h2>
     <label class="field">
       <span>Magnetic Variation</span>
+      <div class="seg" id="varModeSeg">
+        <button type="button" class="seg-btn" data-mode="auto">Automatic</button>
+        <button type="button" class="seg-btn" data-mode="manual">Manual</button>
+      </div>
+    </label>
+    <p class="hint" id="varAutoHint">Computed automatically from each Fix 1 location using the WMM2025 world magnetic model (valid 2025&ndash;2030).</p>
+    <p class="var-preview" id="varPreview" hidden></p>
+    <label class="field" id="varManualField" hidden>
+      <span>Variation</span>
       <div class="row">
         <input type="number" id="varDeg" min="0" max="180" step="0.1" inputmode="decimal">
         <span>&deg;</span>
@@ -81,7 +92,6 @@
         </select>
       </div>
     </label>
-    <p class="hint">Magnetic = True &minus; Easterly variation (or + Westerly). Enter the value from your chart or GPS.</p>
     <label class="field">
       <span>Min. interval for valid drift (seconds)</span>
       <input type="number" id="minInterval" min="1" step="1" inputmode="numeric">
@@ -93,6 +103,7 @@
   </div>
 </div>
 
+<script src="wmm.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
